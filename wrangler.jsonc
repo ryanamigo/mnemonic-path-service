@@ -9,7 +9,15 @@
 	"compatibility_date": "2026-01-03",
 	"observability": {
 		"enabled": true
-	}
+	},
+	"d1_databases": [
+		{
+			"binding": "mnemonic_db",
+			"database_name": "mnemonic-db",
+			"database_id": "ad3d4cbb-25ee-4c5a-acef-a7a018750149",
+			"remote": false
+		}
+	]
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

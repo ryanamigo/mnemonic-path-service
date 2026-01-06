@@ -6,7 +6,10 @@
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "start": "wrangler dev",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "db:migrate:create": "wrangler d1 migrations create mnemonic_db",
+    "db:migrate:local": "wrangler d1 migrations apply mnemonic_db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply mnemonic_db --remote"
   },
   "dependencies": {
     "chanfana": "^2.6.3",

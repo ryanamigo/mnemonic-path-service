@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { AppContext } from "../../types";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getCookie } from "hono/cookie";
+import { verify } from "hono/jwt";
 
 export class Presign extends OpenAPIRoute {
   schema = {
@@ -27,15 +29,35 @@ export class Presign extends OpenAPIRoute {
           },
         },
       },
+      "401": {
+        description: "Unauthorized",
+        content: {
+          "application/json": {
+            schema: z.object({
+              success: Bool(),
+              error: Str(),
+            }),
+          },
+        },
+      },
     },
   };
 
   async handle(c: AppContext) {
+    const authSession = getCookie(c, "auth_session");
+    if (!authSession) {
+      return c.json({ success: false, error: "Unauthorized" }, 401);
+    }
+
+    const env = c.env;
+    try {
+      await verify(authSession, env.JWT_SECRET);
+    } catch (e) {
+      return c.json({ success: false, error: "Invalid token" }, 401);
+    }
+
     const data = await this.getValidatedData<typeof this.schema>();
     const { fileName } = data.query;
-
-    // Cast env to include R2 credentials which are regular env vars/secrets
-    const env = c.env
 
     const S3 = new S3Client({
       region: "auto",

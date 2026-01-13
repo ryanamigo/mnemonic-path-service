@@ -1,16 +1,18 @@
 import { Bool, OpenAPIRoute } from "chanfana";
 import { z } from "zod";
-import { AppContext, Mnemonic } from "../../types";
+import { AppContext, Mnemonic, MnemonicCreateParams } from "../../types";
+import { getCookie } from "hono/cookie";
+import { verify } from "hono/jwt";
 
 export class MnemonicCreate extends OpenAPIRoute {
   schema = {
-    tags: ["Mnemonics"],
-    summary: "Create a new Mnemonic",
+    tags: ["Mnemonic"],
+    summary: "Create a new mnemonic",
     request: {
       body: {
         content: {
           "application/json": {
-            schema: Mnemonic,
+            schema: MnemonicCreateParams,
           },
         },
       },
@@ -23,8 +25,19 @@ export class MnemonicCreate extends OpenAPIRoute {
             schema: z.object({
               success: Bool(),
               result: z.object({
-                mnemonic: Mnemonic,
+                mnemonic: Mnemonic
               }),
+            }),
+          },
+        },
+      },
+      "401": {
+        description: "Unauthorized",
+        content: {
+          "application/json": {
+            schema: z.object({
+              success: Bool(),
+              error: z.string(),
             }),
           },
         },
@@ -33,6 +46,18 @@ export class MnemonicCreate extends OpenAPIRoute {
   };
 
   async handle(c: AppContext) {
+    const authSession = getCookie(c, "auth_session");
+    if (!authSession) {
+      return c.json({ success: false, error: "Unauthorized" }, 401);
+    }
+
+    const env = c.env;
+    try {
+      await verify(authSession, env.JWT_SECRET);
+    } catch (e) {
+      return c.json({ success: false, error: "Invalid token" }, 401);
+    }
+
     const data = await this.getValidatedData<typeof this.schema>();
     const mnemonic = data.body;
     const id = crypto.randomUUID();
@@ -75,7 +100,10 @@ export class MnemonicCreate extends OpenAPIRoute {
     return {
       success: true,
       result: {
-        mnemonic: mnemonic,
+        mnemonic: {
+          id,
+          ...mnemonic
+        },
       },
     };
   }

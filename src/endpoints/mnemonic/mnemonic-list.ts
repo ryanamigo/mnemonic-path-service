@@ -26,6 +26,7 @@ export class MnemonicList extends OpenAPIRoute {
   async handle(c: AppContext) {
     const result = await c.env.mnemonic_db.prepare("SELECT * FROM images").all();
     const mnemonics = result.results.map((row: any) => ({
+      id: row.id,
       url: row.url,
       metadata: {
         width: row.width,

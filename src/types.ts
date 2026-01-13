@@ -38,7 +38,53 @@ export const ImageMetadata = z.object({
   location: GPSCoordinates.optional().describe("地理位置信息"),
 });
 
+export const MnemonicCreateParams = z.object({
+  url: z.string().url(),
+  metadata: z.object({
+    width: z.number().optional(),
+    height: z.number().optional(),
+    size: z.number().optional(),
+    mimeType: z.string().optional(),
+    exif: z.object({
+      make: z.string().nullable().optional(),
+      model: z.string().nullable().optional(),
+      dateTimeOriginal: z.string().nullable().optional(),
+      exposureTime: z.string().nullable().optional(),
+      fNumber: z.number().nullable().optional(),
+      isoSpeedRatings: z.number().nullable().optional(),
+      focalLength: z.number().nullable().optional(),
+      lensModel: z.string().nullable().optional(),
+    }).optional(),
+    location: z.object({
+      latitude: z.number().nullable().optional(),
+      longitude: z.number().nullable().optional(),
+      altitude: z.number().nullable().optional(),
+    }).optional(),
+  }).optional(),
+})
+
 export const Mnemonic = z.object({
-  url: Str().describe("图片 URL"),
-  metadata: ImageMetadata.optional().describe("图片元数据"),
+  id: z.string(),
+  url: z.string().url(),
+  metadata: z.object({
+    width: z.number().optional(),
+    height: z.number().optional(),
+    size: z.number().optional(),
+    mimeType: z.string().optional(),
+    exif: z.object({
+      make: z.string().nullable().optional(),
+      model: z.string().nullable().optional(),
+      dateTimeOriginal: z.string().nullable().optional(),
+      exposureTime: z.string().nullable().optional(),
+      fNumber: z.number().nullable().optional(),
+      isoSpeedRatings: z.number().nullable().optional(),
+      focalLength: z.number().nullable().optional(),
+      lensModel: z.string().nullable().optional(),
+    }).optional(),
+    location: z.object({
+      latitude: z.number().nullable().optional(),
+      longitude: z.number().nullable().optional(),
+      altitude: z.number().nullable().optional(),
+    }).optional(),
+  }).optional(),
 })

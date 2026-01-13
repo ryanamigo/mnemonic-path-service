@@ -39,7 +39,7 @@ export const ImageMetadata = z.object({
 });
 
 export const MnemonicCreateParams = z.object({
-  url: z.string().url(),
+  url: z.string(),
   metadata: z.object({
     width: z.number().optional(),
     height: z.number().optional(),
@@ -65,7 +65,7 @@ export const MnemonicCreateParams = z.object({
 
 export const Mnemonic = z.object({
   id: z.string(),
-  url: z.string().url(),
+  url: z.string(),
   metadata: z.object({
     width: z.number().optional(),
     height: z.number().optional(),

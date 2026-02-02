@@ -1,8 +1,8 @@
 import { Bool, OpenAPIRoute, Str } from "chanfana";
 import { z } from "zod";
 import { AppContext } from "../../types";
-import { getCookie } from "hono/cookie";
 import { verify } from "hono/jwt";
+import { success } from "../../utils/response";
 
 export class MnemonicDelete extends OpenAPIRoute {
   schema = {
@@ -42,14 +42,14 @@ export class MnemonicDelete extends OpenAPIRoute {
   };
 
   async handle(c: AppContext) {
-    const authSession = getCookie(c, "auth_session");
-    if (!authSession) {
+    const headerToken = c.req.header("Authorization");
+    if (!headerToken) {
       return c.json({ success: false, error: "Unauthorized" }, 401);
     }
 
     const env = c.env;
     try {
-      await verify(authSession, env.JWT_SECRET);
+      await verify(headerToken, env.JWT_SECRET);
     } catch (e) {
       return c.json({ success: false, error: "Invalid token" }, 401);
     }
@@ -59,8 +59,6 @@ export class MnemonicDelete extends OpenAPIRoute {
 
     await c.env.mnemonic_db.prepare("DELETE FROM images WHERE id = ?").bind(id).run();
 
-    return {
-      success: true,
-    };
+    return success()
   }
 }

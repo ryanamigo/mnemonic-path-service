@@ -1,6 +1,7 @@
 import { Bool, OpenAPIRoute, Str } from "chanfana";
 import { z } from "zod";
 import { AppContext, Mnemonic } from "../../types";
+import { success } from "../../utils/response";
 
 export class MnemonicFetch extends OpenAPIRoute {
   schema = {
@@ -43,35 +44,29 @@ export class MnemonicFetch extends OpenAPIRoute {
         error: "Mnemonic not found",
       };
     }
-
-    return {
-      success: true,
-      result: {
-        mnemonic: {
-          url: row.url,
-          metadata: {
-            width: row.width,
-            height: row.height,
-            size: row.size,
-            mimeType: row.mime_type,
-            exif: {
-              make: row.make,
-              model: row.model,
-              dateTimeOriginal: row.date_time_original,
-              exposureTime: row.exposure_time,
-              fNumber: row.f_number,
-              isoSpeedRatings: row.iso_speed_ratings,
-              focalLength: row.focal_length,
-              lensModel: row.lens_model,
-            },
-            location: {
-              latitude: row.latitude,
-              longitude: row.longitude,
-              altitude: row.altitude,
-            },
-          },
+    return success({
+      url: row.url,
+      metadata: {
+        width: row.width,
+        height: row.height,
+        size: row.size,
+        mimeType: row.mime_type,
+        exif: {
+          make: row.make,
+          model: row.model,
+          dateTimeOriginal: row.date_time_original,
+          exposureTime: row.exposure_time,
+          fNumber: row.f_number,
+          isoSpeedRatings: row.iso_speed_ratings,
+          focalLength: row.focal_length,
+          lensModel: row.lens_model,
+        },
+        location: {
+          latitude: row.latitude,
+          longitude: row.longitude,
+          altitude: row.altitude,
         },
       },
-    };
+    })
   }
 }

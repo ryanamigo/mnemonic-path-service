@@ -1,5 +1,6 @@
 import { fromHono } from "chanfana";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { MnemonicCreate } from "./endpoints/mnemonic/mnemonic-create";
 import { MnemonicDelete } from "./endpoints/mnemonic/mnemonic-delete";
 import { MnemonicFetch } from "./endpoints/mnemonic/mnemonic-fetch";
@@ -9,6 +10,8 @@ import { Login } from "./endpoints/auth/login";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: Env }>();
+
+app.use("/api/*", cors());
 
 // Setup OpenAPI registry
 const openapi = fromHono(app, {

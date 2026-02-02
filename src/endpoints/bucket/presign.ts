@@ -3,8 +3,8 @@ import { z } from 'zod'
 import { AppContext } from "../../types";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { getCookie } from "hono/cookie";
 import { verify } from "hono/jwt";
+import { success } from "../../utils/response";
 
 export class Presign extends OpenAPIRoute {
   schema = {
@@ -44,14 +44,14 @@ export class Presign extends OpenAPIRoute {
   };
 
   async handle(c: AppContext) {
-    const authSession = getCookie(c, "auth_session");
-    if (!authSession) {
+    const headerToken = c.req.header("Authorization");
+    if (!headerToken) {
       return c.json({ success: false, error: "Unauthorized" }, 401);
     }
 
     const env = c.env;
     try {
-      await verify(authSession, env.JWT_SECRET);
+      await verify(headerToken, env.JWT_SECRET);
     } catch (e) {
       return c.json({ success: false, error: "Invalid token" }, 401);
     }
@@ -77,11 +77,8 @@ export class Presign extends OpenAPIRoute {
       { expiresIn: 3600 }
     );
 
-    return {
-      success: true,
-      result: {
-        url: url
-      },
-    };
+    return success({
+      url
+    })
   }
 }

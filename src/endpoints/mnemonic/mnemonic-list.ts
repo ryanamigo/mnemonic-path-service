@@ -1,11 +1,18 @@
-import { Bool, OpenAPIRoute } from "chanfana";
+import { Bool, Num, OpenAPIRoute } from "chanfana";
 import { z } from "zod";
 import { AppContext, Mnemonic } from "../../types";
+import { success } from "../../utils/response";
 
 export class MnemonicList extends OpenAPIRoute {
   schema = {
-    tags: ["Mnemonics"],
+    tags: ["Mnemonic"],
     summary: "List Mnemonics",
+    request: {
+      query: z.object({
+        page: Num({ default: 1, description: "Page number" }), // Start with simple Num, validions via zod if needed or assume Num handles basic default/desc
+        pageSize: Num({ default: 20, description: "Items per page" }),
+      }),
+    },
     responses: {
       "200": {
         description: "Returns a list of mnemonics",
@@ -15,6 +22,13 @@ export class MnemonicList extends OpenAPIRoute {
               success: Bool(),
               result: z.object({
                 mnemonics: z.array(Mnemonic),
+                pagination: z.object({
+                  total: z.number(),
+                  page: z.number(),
+                  pageSize: z.number(),
+                  totalPages: z.number(),
+                  isLastPage: z.boolean(),
+                }),
               }),
             }),
           },
@@ -24,8 +38,22 @@ export class MnemonicList extends OpenAPIRoute {
   };
 
   async handle(c: AppContext) {
-    const result = await c.env.mnemonic_db.prepare("SELECT * FROM images").all();
-    const mnemonics = result.results.map((row: any) => ({
+    const data = await this.getValidatedData<typeof this.schema>();
+    const { page, pageSize } = data.query;
+
+    const limit = pageSize;
+    const offset = (page - 1) * pageSize;
+
+    const [results, totalResult] = await Promise.all([
+      c.env.mnemonic_db.prepare("SELECT * FROM images LIMIT ? OFFSET ?").bind(limit, offset).all(),
+      c.env.mnemonic_db.prepare("SELECT COUNT(*) as total FROM images").first(),
+    ]);
+
+    const total = (totalResult as any)?.total || 0;
+    const totalPages = Math.ceil(total / pageSize);
+    const isLastPage = page >= totalPages;
+
+    const mnemonics = results.results.map((row: any) => ({
       id: row.id,
       url: row.url,
       metadata: {
@@ -51,11 +79,12 @@ export class MnemonicList extends OpenAPIRoute {
       },
     }));
 
-    return {
-      success: true,
-      result: {
-        mnemonics: mnemonics,
-      },
-    };
+    return success(mnemonics, {
+      total,
+      page,
+      pageSize,
+      totalPages,
+      isLastPage,
+    });
   }
 }

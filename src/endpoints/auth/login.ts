@@ -1,8 +1,8 @@
 import { Bool, OpenAPIRoute, Str } from "chanfana";
 import { z } from "zod";
 import { AppContext } from "../../types";
-import { generateCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
+import { success } from "../../utils/response";
 
 export class Login extends OpenAPIRoute {
   schema = {
@@ -66,17 +66,8 @@ export class Login extends OpenAPIRoute {
 
     const token = await sign(payload, env.JWT_SECRET);
 
-    const cookie = generateCookie("auth_session", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-      path: "/",
-    });
-    return c.json({
-      success: true,
-    }, 200, {
-      'Set-Cookie': cookie
+    return success({
+      token
     })
   }
 }

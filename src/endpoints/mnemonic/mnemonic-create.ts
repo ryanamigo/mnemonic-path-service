@@ -1,8 +1,8 @@
 import { Bool, OpenAPIRoute } from "chanfana";
 import { z } from "zod";
 import { AppContext, Mnemonic, MnemonicCreateParams } from "../../types";
-import { getCookie } from "hono/cookie";
 import { verify } from "hono/jwt";
+import { success } from "../../utils/response";
 
 export class MnemonicCreate extends OpenAPIRoute {
   schema = {
@@ -46,14 +46,14 @@ export class MnemonicCreate extends OpenAPIRoute {
   };
 
   async handle(c: AppContext) {
-    const authSession = getCookie(c, "auth_session");
-    if (!authSession) {
+    const headerToken = c.req.header("Authorization");
+    if (!headerToken) {
       return c.json({ success: false, error: "Unauthorized" }, 401);
     }
 
     const env = c.env;
     try {
-      await verify(authSession, env.JWT_SECRET);
+      await verify(headerToken, env.JWT_SECRET);
     } catch (e) {
       return c.json({ success: false, error: "Invalid token" }, 401);
     }
@@ -97,14 +97,9 @@ export class MnemonicCreate extends OpenAPIRoute {
       now
     ).run();
 
-    return {
-      success: true,
-      result: {
-        mnemonic: {
-          id,
-          ...mnemonic
-        },
-      },
-    };
+    return success({
+      id,
+      ...mnemonic
+    })
   }
 }

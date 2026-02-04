@@ -26,6 +26,7 @@ export class Login extends OpenAPIRoute {
           "application/json": {
             schema: z.object({
               success: Bool(),
+              token: Str(),
             }),
           },
         },
